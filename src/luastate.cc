@@ -1,6 +1,12 @@
 #define BUILDING_NODELUA
 #include "luastate.h"
 
+#if LUA_VERSION_NUM >= 502
+static lua_State* lua_open() {
+  return luaL_newstate();
+}
+#endif
+
 using namespace v8;
 
 uv_async_t async;
@@ -210,7 +216,7 @@ Handle<Value> LuaState::New(const Arguments& args){
     return ThrowException(Exception::TypeError(String::New("LuaState Requires The 'new' Operator To Create An Instance")));
   }
 
-  if(!args.Length() > 0){
+  if(args.Length() < 1){
     return ThrowException(Exception::TypeError(String::New("LuaState Requires 1 Argument")));
   }
 
