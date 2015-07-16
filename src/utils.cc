@@ -1,16 +1,14 @@
 #include <stdlib.h>
 #include "utils.h"
 
-char * get_str(v8::Local<v8::Value> val){
+std::string get_str(v8::Local<v8::Value> val){
   if(!val->IsString()){
     v8::ThrowException(v8::Exception::TypeError(v8::String::New("Argument Must Be A String")));
     return NULL;
   }
 
   v8::String::Utf8Value val_string(val);
-  char * val_char_ptr = (char *) malloc(val_string.length() + 1);
-  strcpy(val_char_ptr, *val_string);
-  return val_char_ptr;
+  return std::string(*val_string,val_string.length());
 }
 
 
@@ -45,8 +43,12 @@ v8::Local<v8::Value> lua_to_value(lua_State* L, int i){
 }
 
 void push_value_to_lua(lua_State* L, v8::Handle<v8::Value> value){
+  if (value.IsEmpty()) {
+    lua_pushnil(L);
+    return;
+  }
   if(value->IsString()){
-    lua_pushstring(L, get_str(v8::Local<v8::Value>::New(value)));
+    lua_pushstring(L, get_str(v8::Local<v8::Value>::New(value)).c_str());
   }else if(value->IsNumber()){
     int i_value = value->ToNumber()->Value();
     lua_pushinteger(L, i_value);

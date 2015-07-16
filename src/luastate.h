@@ -2,6 +2,7 @@
 #define LUASTATE_H
 
 #include <map>
+#include <string>
 #include <node.h>
 
 #include "utils.h"
@@ -15,7 +16,8 @@ extern "C"{
 class LuaState : public node::ObjectWrap{
  public:
   lua_State* lua_;
-  char* name_;
+  std::string name_;
+  uv_mutex_t  mutex_;
 
   static void Init(v8::Handle<v8::Object> target);
   static int CallFunction(lua_State* L);
@@ -43,6 +45,9 @@ class LuaState : public node::ObjectWrap{
 
   static v8::Handle<v8::Value> SetGlobal(const v8::Arguments& args);
   static v8::Handle<v8::Value> GetGlobal(const v8::Arguments& args);
+
+  static v8::Handle<v8::Value> CallGlobal(const v8::Arguments& args);
+  static v8::Handle<v8::Value> CallGlobalSync(const v8::Arguments& args);
 
   static v8::Handle<v8::Value> RegisterFunction(const v8::Arguments& args);
 
