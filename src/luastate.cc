@@ -1,5 +1,6 @@
 #define BUILDING_NODELUA
 #include "luastate.h"
+#include <string.h>
 #include <vector>
 
 #if LUA_VERSION_NUM >= 502
