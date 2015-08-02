@@ -1,9 +1,12 @@
 #include <stdlib.h>
 #include "utils.h"
+using namespace v8;
 
 std::string get_str(v8::Local<v8::Value> val){
+  v8::Isolate* isolate;
+  isolate = v8::Isolate::GetCurrent();
   if(!val->IsString()){
-    v8::ThrowException(v8::Exception::TypeError(v8::String::New("Argument Must Be A String")));
+    isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Argument Must Be A String")));
     return NULL;
   }
 
@@ -13,19 +16,21 @@ std::string get_str(v8::Local<v8::Value> val){
 
 
 v8::Local<v8::Value> lua_to_value(lua_State* L, int i){
+  v8::Isolate* isolate;
+  isolate = v8::Isolate::GetCurrent();
   switch(lua_type(L, i)){
   case LUA_TBOOLEAN:
-    return v8::Local<v8::Boolean>::New(v8::Boolean::New((int)lua_toboolean(L, i)));
+    return v8::Local<v8::Boolean>::New(isolate, v8::Boolean::New(isolate, (int)lua_toboolean(L, i)));
     break;
   case LUA_TNUMBER:
-    return v8::Local<v8::Number>::New(v8::Number::New(lua_tonumber(L, i)));
+    return v8::Local<v8::Number>::New(isolate, v8::Number::New(isolate, lua_tonumber(L, i)));
     break;
   case LUA_TSTRING:
-    return v8::String::New((char *)lua_tostring(L, i));
+    return v8::String::NewFromUtf8(isolate, (char *)lua_tostring(L, i));
     break;
   case LUA_TTABLE:
     {
-      v8::Local<v8::Object> obj = v8::Object::New();
+      v8::Local<v8::Object> obj = v8::Object::New(isolate);
       lua_pushnil(L);
       while(lua_next(L, -2) != 0){
 	v8::Local<v8::Value> key = lua_to_value(L, -2);
@@ -37,18 +42,20 @@ v8::Local<v8::Value> lua_to_value(lua_State* L, int i){
       break;
     }
   default:
-    return v8::Local<v8::Primitive>::New(v8::Undefined());
+    return v8::Local<v8::Primitive>::New(isolate, v8::Undefined(isolate));
     break;
   }
 }
 
 void push_value_to_lua(lua_State* L, v8::Handle<v8::Value> value){
+  v8::Isolate* isolate;
+  isolate = v8::Isolate::GetCurrent();
   if (value.IsEmpty()) {
     lua_pushnil(L);
     return;
   }
   if(value->IsString()){
-    lua_pushstring(L, get_str(v8::Local<v8::Value>::New(value)).c_str());
+    lua_pushstring(L, get_str(v8::Local<v8::Value>::New(isolate, value)).c_str());
   }else if(value->IsNumber()){
     int i_value = value->ToNumber()->Value();
     lua_pushinteger(L, i_value);

@@ -22,7 +22,10 @@
   "license": "MIT",
   "gypfile": true,
   "engines": {
-      "node": ">=0.10.0"
+    "node": ">=0.10.0"
   },
-  "engineStrict": true
+  "engineStrict": true,
+  "dependencies": {
+    "nan": "^1.8.4"
+  }
 }

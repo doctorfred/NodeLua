@@ -4,6 +4,11 @@
 #include <map>
 #include <string>
 #include <node.h>
+#include <node_object_wrap.h>
+#include <uv.h>
+#include <nan.h>
+
+using namespace v8;
 
 #include "utils.h"
 
@@ -26,35 +31,35 @@ class LuaState : public node::ObjectWrap{
   LuaState();
   ~LuaState();
 
-  static v8::Handle<v8::Value> New(const v8::Arguments& args);
-  static v8::Handle<v8::Value> Close(const v8::Arguments& args);
-  static v8::Handle<v8::Value> GetName(const v8::Arguments& args);
+  static NAN_METHOD(New);
+  static NAN_METHOD(Close);
+  static NAN_METHOD(GetName);
 
-  static v8::Handle<v8::Value> CollectGarbage(const v8::Arguments& args);
-  static v8::Handle<v8::Value> CollectGarbageSync(const v8::Arguments& args);
+  static NAN_METHOD(CollectGarbage);
+  static NAN_METHOD(CollectGarbageSync);
 
-  static v8::Handle<v8::Value> Status(const v8::Arguments& args);
-  static v8::Handle<v8::Value> StatusSync(const v8::Arguments& args);
+  static NAN_METHOD(Status);
+  static NAN_METHOD(StatusSync);
 
 
-  static v8::Handle<v8::Value> DoFileSync(const v8::Arguments& args);
-  static v8::Handle<v8::Value> DoFile(const v8::Arguments& args);
+  static NAN_METHOD(DoFileSync);
+  static NAN_METHOD(DoFile);
 
-  static v8::Handle<v8::Value> DoStringSync(const v8::Arguments& args);
-  static v8::Handle<v8::Value> DoString(const v8::Arguments& args);
+  static NAN_METHOD(DoStringSync);
+  static NAN_METHOD(DoString);
 
-  static v8::Handle<v8::Value> SetGlobal(const v8::Arguments& args);
-  static v8::Handle<v8::Value> GetGlobal(const v8::Arguments& args);
+  static NAN_METHOD(SetGlobal);
+  static NAN_METHOD(GetGlobal);
 
-  static v8::Handle<v8::Value> CallGlobal(const v8::Arguments& args);
-  static v8::Handle<v8::Value> CallGlobalSync(const v8::Arguments& args);
+  static NAN_METHOD(CallGlobal);
+  static NAN_METHOD(CallGlobalSync);
 
-  static v8::Handle<v8::Value> RegisterFunction(const v8::Arguments& args);
+  static NAN_METHOD(RegisterFunction);
 
-  static v8::Handle<v8::Value> Push(const v8::Arguments& args);
-  static v8::Handle<v8::Value> Pop(const v8::Arguments& args);
-  static v8::Handle<v8::Value> GetTop(const v8::Arguments& args);
-  static v8::Handle<v8::Value> SetTop(const v8::Arguments& args);
-  static v8::Handle<v8::Value> Replace(const v8::Arguments& args);
+  static NAN_METHOD(Push);
+  static NAN_METHOD(Pop);
+  static NAN_METHOD(GetTop);
+  static NAN_METHOD(SetTop);
+  static NAN_METHOD(Replace);
 };
 #endif

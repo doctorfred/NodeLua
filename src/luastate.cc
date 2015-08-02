@@ -88,20 +88,21 @@ void do_status(uv_work_t *req){
 
 
 void simple_after(uv_work_t *req, int status){
-  HandleScope scope;
+  
+  NanScope();
 
   simple_baton* baton = static_cast<simple_baton*>(req->data);
 
   const int argc = 1;
-  Local<Value> argv[] = { Number::New(baton->result) };
+  Local<Value> argv[] = { NanNew<Number>(baton->result) };
 
   TryCatch try_catch;
 
   if(!baton->callback.IsEmpty()){
-    baton->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+    baton->callback->Call(NanGetCurrentContext()->Global(), argc, argv);
   }
 
-  baton->callback.Dispose();
+  NanDisposePersistent(baton->callback);
   delete baton;
   delete req;
 
@@ -151,7 +152,8 @@ void do_call_global(uv_work_t *req) {
 }
 
 void async_after(uv_work_t *req, int status){
-  HandleScope scope;
+  
+  NanScope();
 
   async_data_baton* baton = (async_data_baton *)req->data;
   
@@ -160,10 +162,10 @@ void async_after(uv_work_t *req, int status){
   const int argc = 2;
 
   if(baton->error){
-    argv[0] = String::NewSymbol(baton->msg);
-    argv[1] = Local<Value>::New(Undefined());
+    argv[0] = NanNew(baton->msg);
+    argv[1] = NanUndefined();
   } else {
-    argv[0] = Local<Value>::New(Undefined());
+    argv[0] = NanUndefined();
     if(baton->result != LUA_NOREF){
       lua_lock lock(baton->state);
       lua_rawgeti(baton->state->lua_,LUA_REGISTRYINDEX,baton->result);
@@ -171,17 +173,17 @@ void async_after(uv_work_t *req, int status){
       argv[1] = lua_to_value(baton->state->lua_, -1);
       lua_pop(baton->state->lua_,1);
     } else{
-      argv[1] = Local<Value>::New(Undefined());
+      argv[1] = NanUndefined();
     }
   }
 
   TryCatch try_catch;
 
   if(!baton->callback.IsEmpty()){
-    baton->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+    baton->callback->Call(NanGetCurrentContext()->Global(), argc, argv);
   }
 
-  baton->callback.Dispose();
+  NanDisposePersistent(baton->callback);
   delete baton;
   delete req;
 
@@ -200,61 +202,63 @@ LuaState::~LuaState(){
 
 
 void LuaState::Init(Handle<Object> target){
-  Local<FunctionTemplate> tpl = FunctionTemplate::New(New);
-  tpl->SetClassName(String::NewSymbol("LuaState"));
+  Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
+  tpl->SetClassName(NanNew("LuaState"));
   tpl->InstanceTemplate()->SetInternalFieldCount(2);
 
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("doFileSync"),
-				FunctionTemplate::New(DoFileSync)->GetFunction());
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("doFile"),
-				FunctionTemplate::New(DoFile)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("doFileSync"),
+				NanNew<FunctionTemplate>(DoFileSync)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("doFile"),
+				NanNew<FunctionTemplate>(DoFile)->GetFunction());
 
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("doStringSync"),
-				FunctionTemplate::New(DoStringSync)->GetFunction());
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("doString"),
-				FunctionTemplate::New(DoString)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("doStringSync"),
+				NanNew<FunctionTemplate>(DoStringSync)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("doString"),
+				NanNew<FunctionTemplate>(DoString)->GetFunction());
 
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("setGlobal"),
-				FunctionTemplate::New(SetGlobal)->GetFunction());
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("getGlobal"),
-				FunctionTemplate::New(GetGlobal)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("setGlobal"),
+				NanNew<FunctionTemplate>(SetGlobal)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("getGlobal"),
+				NanNew<FunctionTemplate>(GetGlobal)->GetFunction());
 
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("callGlobalSync"),
-        FunctionTemplate::New(CallGlobalSync)->GetFunction());
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("callGlobal"),
-        FunctionTemplate::New(CallGlobal)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("callGlobalSync"),
+        NanNew<FunctionTemplate>(CallGlobalSync)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("callGlobal"),
+        NanNew<FunctionTemplate>(CallGlobal)->GetFunction());
 
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("status"),
-				FunctionTemplate::New(Status)->GetFunction());
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("statusSync"),
-				FunctionTemplate::New(StatusSync)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("status"),
+				NanNew<FunctionTemplate>(Status)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("statusSync"),
+				NanNew<FunctionTemplate>(StatusSync)->GetFunction());
 
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("collectGarbage"),
-				FunctionTemplate::New(CollectGarbage)->GetFunction());
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("collectGarbageSync"),
-				FunctionTemplate::New(CollectGarbageSync)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("collectGarbage"),
+				NanNew<FunctionTemplate>(CollectGarbage)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("collectGarbageSync"),
+				NanNew<FunctionTemplate>(CollectGarbageSync)->GetFunction());
 
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("close"),
-				FunctionTemplate::New(Close)->GetFunction());
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("getName"),
-				FunctionTemplate::New(GetName)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("close"),
+				NanNew<FunctionTemplate>(Close)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("getName"),
+				NanNew<FunctionTemplate>(GetName)->GetFunction());
 
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("registerFunction"),
-				FunctionTemplate::New(RegisterFunction)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("registerFunction"),
+				NanNew<FunctionTemplate>(RegisterFunction)->GetFunction());
 
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("push"),
-				FunctionTemplate::New(Push)->GetFunction());
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("pop"),
-				FunctionTemplate::New(Pop)->GetFunction());
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("getTop"),
-				FunctionTemplate::New(GetTop)->GetFunction());
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("setTop"),
-				FunctionTemplate::New(SetTop)->GetFunction());
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("replace"),
-				FunctionTemplate::New(Replace)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("push"),
+				NanNew<FunctionTemplate>(Push)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("pop"),
+				NanNew<FunctionTemplate>(Pop)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("getTop"),
+				NanNew<FunctionTemplate>(GetTop)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("setTop"),
+				NanNew<FunctionTemplate>(SetTop)->GetFunction());
+  tpl->PrototypeTemplate()->Set(NanNew("replace"),
+				NanNew<FunctionTemplate>(Replace)->GetFunction());
 
-  Persistent<Function> constructor = Persistent<Function>::New(tpl->GetFunction());
-  target->Set(String::NewSymbol("LuaState"), constructor);
+  Persistent<Function> constructor; 
+  NanAssignPersistent(constructor, tpl->GetFunction());
+
+  target->Set(NanNew("LuaState"), constructor);
 }
 
 
@@ -270,13 +274,13 @@ int LuaState::CallFunction(lua_State* L){
     argv[i - 1] = lua_to_value(L, i);
   }
 
-  Handle<Value> ret_val = Undefined();
+  Handle<Value> ret_val = NanUndefined();
 
   functions_map_t::iterator iter;
   for(iter = functions.begin(); iter != functions.end(); iter++){
     if(strcmp(iter->first.c_str(), func_name) == 0){
       Persistent<Function> func = iter->second;
-      ret_val = func->Call(Context::GetCurrent()->Global(), argc, argv);
+      ret_val = func->Call(NanGetCurrentContext()->Global(), argc, argv);
       break;
     }
   }
@@ -286,19 +290,19 @@ int LuaState::CallFunction(lua_State* L){
 }
 
 
-Handle<Value> LuaState::New(const Arguments& args){
-  HandleScope scope;
+NAN_METHOD(LuaState::New){
+  NanScope();
 
   if(!args.IsConstructCall()) {
-    return ThrowException(Exception::TypeError(String::New("LuaState Requires The 'new' Operator To Create An Instance")));
+    return NanThrowError("LuaState Requires The 'new' Operator To Create An Instance");
   }
 
   if(args.Length() < 1){
-    return ThrowException(Exception::TypeError(String::New("LuaState Requires 1 Argument")));
+    return NanThrowError("LuaState Requires 1 Argument");
   }
 
   if(!args[0]->IsString()){
-    return ThrowException(Exception::TypeError(String::New("LuaState First Argument Must Be A String")));
+    return NanThrowError("LuaState First Argument Must Be A String");
   }
 
   LuaState* obj = new LuaState();
@@ -307,29 +311,29 @@ Handle<Value> LuaState::New(const Arguments& args){
   luaL_openlibs(obj->lua_);
   obj->Wrap(args.This());
 
-  return args.This();
+  NanReturnValue(args.This());
 }
 
 
-Handle<Value> LuaState::GetName(const Arguments& args){
-  HandleScope scope;
+NAN_METHOD(LuaState::GetName){
+  NanScope();
 
   LuaState* obj = ObjectWrap::Unwrap<LuaState>(args.This());
-  return scope.Close(String::New(obj->name_.c_str()));
+  NanReturnValue(String::New(obj->name_.c_str()));
 }
 
 
-Handle<Value> LuaState::DoFileSync(const Arguments& args){
-  HandleScope scope;
+NAN_METHOD(LuaState::DoFileSync){
+  NanScope();
 
   if(args.Length() < 1){
-    ThrowException(Exception::TypeError(String::New("LuaState.doFileSync Takes Only 1 Argument")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.doFileSync Takes Only 1 Argument");
+    NanReturnUndefined();
   }
 
   if(!args[0]->IsString()){
-    ThrowException(Exception::TypeError(String::New("LuaState.doFileSync Argument 1 Must Be A String")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.doFileSync Argument 1 Must Be A String");
+    NanReturnUndefined();
   }
 
   std::string file_name = get_str(args[0]);
@@ -339,34 +343,34 @@ Handle<Value> LuaState::DoFileSync(const Arguments& args){
   if(luaL_dofile(obj->lua_, file_name.c_str())){
     char buf[1000];
     sprintf(buf, "Exception Of File %s Has Failed:\n%s\n", file_name.c_str(), lua_tostring(obj->lua_, -1));
-    ThrowException(Exception::Error(String::New(buf)));
-    return scope.Close(Undefined());
+    NanThrowError(buf);
+    NanReturnUndefined();
   }
 
   if(lua_gettop(obj->lua_)){
-    return scope.Close(lua_to_value(obj->lua_, -1));
+    NanReturnValue(lua_to_value(obj->lua_, -1));
   } else{
-    return scope.Close(Undefined());
+    NanReturnUndefined();
   }
 }
 
 
-Handle<Value> LuaState::DoFile(const Arguments& args){
-  HandleScope scope;
+NAN_METHOD(LuaState::DoFile){
+  NanScope();
 
   if(args.Length() < 1){
-    ThrowException(Exception::TypeError(String::New("LuaState.doFile Requires At Least 1 Argument")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.doFile Requires At Least 1 Argument");
+    NanReturnUndefined();
   }
 
   if(!args[0]->IsString()){
-    ThrowException(Exception::TypeError(String::New("LuaState.doFile First Argument Must Be A String")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.doFile First Argument Must Be A String");
+    NanReturnUndefined();
   }
 
   if(args.Length() > 1 && !args[1]->IsFunction()){
-    ThrowException(Exception::TypeError(String::New("LuaState.doFile Second Argument Must Be A Function")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.doFile Second Argument Must Be A Function");
+    NanReturnUndefined();
   }
 
   LuaState* obj = ObjectWrap::Unwrap<LuaState>(args.This());
@@ -383,16 +387,16 @@ Handle<Value> LuaState::DoFile(const Arguments& args){
   req->data = baton;
   uv_queue_work(uv_default_loop(), req, do_file, async_after);
 
-  return scope.Close(Undefined());
+  NanReturnUndefined();
 }
 
 
-Handle<Value> LuaState::DoStringSync(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(LuaState::DoStringSync) {
+  NanScope();
 
   if(args.Length() < 1){
-    ThrowException(Exception::TypeError(String::New("LuaState.doStringSync Requires 1 Argument")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.doStringSync Requires 1 Argument");
+    NanReturnUndefined();
   }
 
   std::string lua_code = get_str(args[0]);
@@ -403,29 +407,29 @@ Handle<Value> LuaState::DoStringSync(const Arguments& args) {
   if(luaL_dostring(obj->lua_, lua_code.c_str())){
     char buf[1000];
     sprintf(buf, "Execution Of Lua Code Has Failed:\n%s\n", lua_tostring(obj->lua_, -1));
-    ThrowException(Exception::Error(String::New(buf)));
-    return scope.Close(Undefined());
+    NanThrowError(buf);
+    NanReturnUndefined();
   }
 
   if(lua_gettop(obj->lua_)){
-    return scope.Close(lua_to_value(obj->lua_, -1));
+    NanReturnValue(lua_to_value(obj->lua_, -1));
   } else{
-    return scope.Close(Undefined());
+    NanReturnUndefined();
   }
 }
 
 
-Handle<Value> LuaState::DoString(const Arguments& args){
-  HandleScope scope;
+NAN_METHOD(LuaState::DoString){
+  NanScope();
 
   if(args.Length() < 1){
-    ThrowException(Exception::TypeError(String::New("LuaState.doString Requires At Least 1 Argument")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.doString Requires At Least 1 Argument");
+    NanReturnUndefined();
   }
 
   if(!args[0]->IsString()){
-    ThrowException(Exception::TypeError(String::New("LuaState.doString: First Argument Must Be A String")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.doString: First Argument Must Be A String");
+    NanReturnUndefined();
   }
 
   LuaState* obj = ObjectWrap::Unwrap<LuaState>(args.This());
@@ -437,8 +441,8 @@ Handle<Value> LuaState::DoString(const Arguments& args){
   obj->Ref();
 
   if(args.Length() > 1 && !args[1]->IsFunction()){
-    ThrowException(Exception::TypeError(String::New("LuaState.doString Second Argument Must Be A Function")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.doString Second Argument Must Be A Function");
+    NanReturnUndefined();
   }
 
   if(args.Length() > 1){
@@ -449,21 +453,21 @@ Handle<Value> LuaState::DoString(const Arguments& args){
   req->data = baton;
   uv_queue_work(uv_default_loop(), req, do_string, async_after);
 
-  return scope.Close(Undefined());
+  NanReturnUndefined();
 }
 
 
-Handle<Value> LuaState::SetGlobal(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(LuaState::SetGlobal) {
+  NanScope();
 
   if(args.Length() < 2){
-    ThrowException(Exception::TypeError(String::New("LuaState.setGlobal Requires 2 Arguments")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.setGlobal Requires 2 Arguments");
+    NanReturnUndefined();
   }
 
   if(!args[0]->IsString()){
-    ThrowException(Exception::TypeError(String::New("LuaState.setGlobal Argument 1 Must Be A String")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.setGlobal Argument 1 Must Be A String");
+    NanReturnUndefined();
   }
 
   std::string global_name = get_str(args[0]);
@@ -474,20 +478,20 @@ Handle<Value> LuaState::SetGlobal(const Arguments& args) {
   push_value_to_lua(obj->lua_, args[1]);
   lua_setglobal(obj->lua_, global_name.c_str());
 
-  return scope.Close(Undefined());
+  NanReturnUndefined();
 }
 
-Handle<Value> LuaState::GetGlobal(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(LuaState::GetGlobal) {
+  NanScope();
 
   if(args.Length() < 1){
-    ThrowException(Exception::TypeError(String::New("LuaState.getGlobal Requires 1 Argument")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.getGlobal Requires 1 Argument");
+    NanReturnUndefined();
   }
 
   if(!args[0]->IsString()){
-    ThrowException(Exception::TypeError(String::New("LuaState.getGlobal Argument 1 Must Be A String")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.getGlobal Argument 1 Must Be A String");
+    NanReturnUndefined();
   }
 
   std::string global_name = get_str(args[0]);
@@ -499,20 +503,20 @@ Handle<Value> LuaState::GetGlobal(const Arguments& args) {
 
   Local<Value> val = lua_to_value(obj->lua_, -1);
 
-  return scope.Close(val);
+  NanReturnValue(val);
 }
 
-Handle<Value> LuaState::CallGlobalSync(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(LuaState::CallGlobalSync) {
+  NanScope();
 
   if(args.Length() < 1){
-    ThrowException(Exception::TypeError(String::New("LuaState.callGlobalSync Requires 1 Argument")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.callGlobalSync Requires 1 Argument");
+    NanReturnUndefined();
   }
 
   if(!args[0]->IsString()){
-    ThrowException(Exception::TypeError(String::New("LuaState.callGlobalSync Argument 1 Must Be A String")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.callGlobalSync Argument 1 Must Be A String");
+    NanReturnUndefined();
   }
 
 
@@ -524,8 +528,8 @@ Handle<Value> LuaState::CallGlobalSync(const Arguments& args) {
   lua_getglobal(obj->lua_, global_name.c_str());
   if (!lua_isfunction(obj->lua_,-1)) {
     lua_pop(obj->lua_,1);
-    ThrowException(Exception::TypeError(String::New("LuaState.callGlobalSync not found requiret global function")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.callGlobalSync not found requiret global function");
+    NanReturnUndefined();
   }
   int lua_args = 0;
   if (args.Length()>1) {
@@ -538,8 +542,8 @@ Handle<Value> LuaState::CallGlobalSync(const Arguments& args) {
        lua_args = largs->Length();
     } else {
       lua_pop(obj->lua_,1);
-      ThrowException(Exception::TypeError(String::New("LuaState.callGlobalSync Argument 2 Must Be Array")));
-      return scope.Close(Undefined());
+      NanThrowError("LuaState.callGlobalSync Argument 2 Must Be Array");
+      NanReturnUndefined();
     }
   }
 
@@ -549,27 +553,27 @@ Handle<Value> LuaState::CallGlobalSync(const Arguments& args) {
     char buf[1000];
     snprintf(buf,1000, "Execution Of Lua Code Has Failed:\n%s\n", lua_tostring(obj->lua_, -1));
     lua_pop(obj->lua_,1);
-    ThrowException(Exception::Error(String::New(buf)));
-    return scope.Close(Undefined());
+    NanThrowError(buf);
+    NanReturnUndefined();
   }
 
   Local<Value> ret_val = lua_to_value(obj->lua_, -1);
   lua_pop(obj->lua_,1);
-  return scope.Close(ret_val);
+  NanReturnValue(ret_val);
 }
 
 
-Handle<Value> LuaState::CallGlobal(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(LuaState::CallGlobal) {
+  NanScope();
 
   if(args.Length() < 1){
-    ThrowException(Exception::TypeError(String::New("LuaState.callGlobal Requires 1 Argument")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.callGlobal Requires 1 Argument");
+    NanReturnUndefined();
   }
 
   if(!args[0]->IsString()){
-    ThrowException(Exception::TypeError(String::New("LuaState.callGlobal Argument 1 Must Be A String")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.callGlobal Argument 1 Must Be A String");
+    NanReturnUndefined();
   }
 
 
@@ -582,8 +586,8 @@ Handle<Value> LuaState::CallGlobal(const Arguments& args) {
     } else if (args[1]->IsArray()) {
       args_index = 1;
     } else {
-      ThrowException(Exception::TypeError(String::New("LuaState.callGlobal Argument 2 Must Be A Function or Array")));
-      return scope.Close(Undefined());
+      NanThrowError("LuaState.callGlobal Argument 2 Must Be A Function or Array");
+      NanReturnUndefined();
     }
   }
 
@@ -592,8 +596,8 @@ Handle<Value> LuaState::CallGlobal(const Arguments& args) {
       args_index = 1;
       cb_index = 2;
     } else {
-      ThrowException(Exception::TypeError(String::New("LuaState.callGlobal Argument 2 Must Be A Array and Agument 3 Must Be Function")));
-      return scope.Close(Undefined());
+      NanThrowError("LuaState.callGlobal Argument 2 Must Be A Array and Agument 3 Must Be Function");
+      NanReturnUndefined();
     }
   }
 
@@ -624,27 +628,27 @@ Handle<Value> LuaState::CallGlobal(const Arguments& args) {
   req->data = baton;
   uv_queue_work(uv_default_loop(), req, do_call_global, async_after);
 
-  return scope.Close(Undefined());
+  NanReturnUndefined();
 }
 
-Handle<Value> LuaState::Close(const Arguments& args){
-  HandleScope scope;
+NAN_METHOD(LuaState::Close){
+  NanScope();
   LuaState* obj = ObjectWrap::Unwrap<LuaState>(args.This());
   lua_close(obj->lua_);
-  return scope.Close(Undefined());
+  NanReturnUndefined();
 }
 
 
-Handle<Value> LuaState::Status(const Arguments& args){
-  HandleScope scope;
+NAN_METHOD(LuaState::Status){
+  NanScope();
   LuaState* obj = ObjectWrap::Unwrap<LuaState>(args.This());
   simple_baton* baton = new simple_baton();
   baton->state = obj;
   obj->Ref();
 
   if(args.Length() > 0 && !args[0]->IsFunction()){
-    ThrowException(Exception::TypeError(String::New("LuaState.status First Argument Must Be A Function")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.status First Argument Must Be A Function");
+    NanReturnUndefined();
   }
 
   if(args.Length() > 0){
@@ -655,31 +659,31 @@ Handle<Value> LuaState::Status(const Arguments& args){
   req->data = baton;
   uv_queue_work(uv_default_loop(), req, do_status, simple_after);
 
-  return scope.Close(Undefined());
+  NanReturnUndefined();
 }
 
 
-Handle<Value> LuaState::StatusSync(const Arguments& args){
-  HandleScope scope;
+NAN_METHOD(LuaState::StatusSync){
+  NanScope();
   LuaState* obj = ObjectWrap::Unwrap<LuaState>(args.This());
   lua_lock lock(obj);
   int status = lua_status(obj->lua_);
 
-  return scope.Close(Number::New(status));
+  NanReturnValue(NanNew<Number>(status));
 }
 
 
-Handle<Value> LuaState::CollectGarbage(const Arguments& args){
-  HandleScope scope;
+NAN_METHOD(LuaState::CollectGarbage){
+  NanScope();
 
   if(args.Length() < 1){
-    ThrowException(Exception::TypeError(String::New("LuaState.collectGarbage Requires 1 Argument")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.collectGarbage Requires 1 Argument");
+    NanReturnUndefined();
   }
 
   if(!args[0]->IsNumber()){
-    ThrowException(Exception::TypeError(String::New("LuaSatte.collectGarbage Argument 1 Must Be A Number, try nodelua.GC.[TYPE]")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaSatte.collectGarbage Argument 1 Must Be A Number, try nodelua.GC.[TYPE]");
+    NanReturnUndefined();
   }
 
   LuaState* obj = ObjectWrap::Unwrap<LuaState>(args.This());
@@ -691,8 +695,8 @@ Handle<Value> LuaState::CollectGarbage(const Arguments& args){
   obj->Ref();
 
   if(args.Length() > 1 && !args[1]->IsFunction()){
-    ThrowException(Exception::TypeError(String::New("LuaState.collectGarbage Second Argument Must Be A Function")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.collectGarbage Second Argument Must Be A Function");
+    NanReturnUndefined();
   }
 
   if(args.Length() > 1){
@@ -703,21 +707,21 @@ Handle<Value> LuaState::CollectGarbage(const Arguments& args){
   req->data = baton;
   uv_queue_work(uv_default_loop(), req, do_gc, simple_after);
 
-  return scope.Close(Undefined());
+  NanReturnUndefined();
 }
 
 
-Handle<Value> LuaState::CollectGarbageSync(const Arguments& args){
-  HandleScope scope;
+NAN_METHOD(LuaState::CollectGarbageSync){
+  NanScope();
 
   if(args.Length() < 1){
-    ThrowException(Exception::TypeError(String::New("LuaState.collectGarbageSync Requires 1 Argument")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.collectGarbageSync Requires 1 Argument");
+    NanReturnUndefined();
   }
 
   if(!args[0]->IsNumber()){
-    ThrowException(Exception::TypeError(String::New("LuaSatte.collectGarbageSync Argument 1 Must Be A Number, try nodelua.GC.[TYPE]")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaSatte.collectGarbageSync Argument 1 Must Be A Number, try nodelua.GC.[TYPE]");
+    NanReturnUndefined();
   }
 
   LuaState* obj = ObjectWrap::Unwrap<LuaState>(args.This());
@@ -726,26 +730,26 @@ Handle<Value> LuaState::CollectGarbageSync(const Arguments& args){
   int type = (int)args[0]->ToNumber()->Value();
   int gc = lua_gc(obj->lua_, type, 0);
 
-  return scope.Close(Number::New(gc));
+  NanReturnValue(Number::New(gc));
 }
 
 
-Handle<Value> LuaState::RegisterFunction(const Arguments& args){
-  HandleScope scope;
+NAN_METHOD(LuaState::RegisterFunction){
+  NanScope();
 
   if(args.Length() < 1){
-    ThrowException(Exception::TypeError(String::New("nodelua.registerFunction Must Have 2 Arguments")));
-    return scope.Close(Undefined());
+    NanThrowError("nodelua.registerFunction Must Have 2 Arguments");
+    NanReturnUndefined();
   }
 
   if(!args[0]->IsString()){
-    ThrowException(Exception::TypeError(String::New("nodelua.registerFunction Argument 1 Must Be A String")));
-    return scope.Close(Undefined());
+    NanThrowError("nodelua.registerFunction Argument 1 Must Be A String");
+    NanReturnUndefined();
   }
 
   if(!args[1]->IsFunction()){
-    ThrowException(Exception::TypeError(String::New("nodelua.registerFunction Argument 2 Must Be A Function")));
-    return scope.Close(Undefined());
+    NanThrowError("nodelua.registerFunction Argument 2 Must Be A Function");
+    NanReturnUndefined();
   }
 
   LuaState* obj = ObjectWrap::Unwrap<LuaState>(args.This());
@@ -761,16 +765,16 @@ Handle<Value> LuaState::RegisterFunction(const Arguments& args){
   lua_pushcclosure(obj->lua_, CallFunction, 1);
   lua_setglobal(obj->lua_, func_name.c_str());
 
-  return scope.Close(Undefined());
+  NanReturnUndefined();
 }
 
 
-Handle<Value> LuaState::Push(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(LuaState::Push) {
+  NanScope();
 
   if(args.Length() < 1){
-    ThrowException(Exception::TypeError(String::New("LuaState.push Requires 1 Argument")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.push Requires 1 Argument");
+    NanReturnUndefined();
   }
 
   LuaState* obj = ObjectWrap::Unwrap<LuaState>(args.This());
@@ -778,12 +782,12 @@ Handle<Value> LuaState::Push(const Arguments& args) {
 
   push_value_to_lua(obj->lua_, args[0]);
 
-  return scope.Close(Undefined());
+  NanReturnUndefined();
 }
 
 
-Handle<Value> LuaState::Pop(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(LuaState::Pop) {
+  NanScope();
 
   int pop_n = 1;
   if(args.Length() > 0 && args[0]->IsNumber()){
@@ -794,23 +798,23 @@ Handle<Value> LuaState::Pop(const Arguments& args) {
   lua_lock lock(obj);
   lua_pop(obj->lua_, pop_n);
 
-  return scope.Close(Undefined());
+  NanReturnUndefined();
 }
 
 
-Handle<Value> LuaState::GetTop(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(LuaState::GetTop) {
+  NanScope();
 
   LuaState* obj = ObjectWrap::Unwrap<LuaState>(args.This());
   lua_lock lock(obj);
   int n = lua_gettop(obj->lua_);
 
-  return scope.Close(Number::New(n));
+  NanReturnValue(Number::New(n));
 }
 
 
-Handle<Value> LuaState::SetTop(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(LuaState::SetTop) {
+  NanScope();
 
   int set_n = 0;
   if(args.Length() > 0 && args[0]->IsNumber()){
@@ -821,21 +825,21 @@ Handle<Value> LuaState::SetTop(const Arguments& args) {
   lua_lock lock(obj);
   lua_settop(obj->lua_, set_n);
 
-  return scope.Close(Undefined());
+  NanReturnUndefined();
 }
 
 
-Handle<Value> LuaState::Replace(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(LuaState::Replace) {
+  NanScope();
 
   if(args.Length() < 1){
-    ThrowException(Exception::TypeError(String::New("LuaState.replace Requires 1 Argument")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.replace Requires 1 Argument");
+    NanReturnUndefined();
   }
 
   if(!args[0]->IsNumber()){
-    ThrowException(Exception::TypeError(String::New("LuaState.replace Argument 1 Must Be A Number")));
-    return scope.Close(Undefined());
+    NanThrowError("LuaState.replace Argument 1 Must Be A Number");
+    NanReturnUndefined();
   }
 
   int index = (int)args[0]->ToNumber()->Value();
@@ -844,5 +848,5 @@ Handle<Value> LuaState::Replace(const Arguments& args) {
   lua_lock lock(obj);
   lua_replace(obj->lua_, index);
 
-  return scope.Close(Undefined());
+  NanReturnUndefined();
 }
