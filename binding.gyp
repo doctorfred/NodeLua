@@ -42,6 +42,7 @@
 	],
       "include_dirs": [
         "lua-5.2.4/src",
+        "<!(node -e \"require('nan')\")"
         ],
       "defines" : ["LUA_ANSI"],
       "libraries": [

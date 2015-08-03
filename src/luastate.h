@@ -8,7 +8,7 @@
 #include <uv.h>
 #include <nan.h>
 
-using namespace v8;
+//using namespace v8;
 
 #include "utils.h"
 
