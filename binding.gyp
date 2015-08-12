@@ -5,7 +5,8 @@
       "sources": [
         "src/utils.cc",
         "src/luastate.cc",
-	      "src/nodelua.cc",
+	    "src/nodelua.cc",
+        "src/yajlbind.cc",
 
         "lua-5.2.4/src/lapi.c",
         "lua-5.2.4/src/lauxlib.c", 
@@ -38,10 +39,20 @@
         "lua-5.2.4/src/lzio.c",
         "lua-5.2.4/src/linit.c",
         "lua-5.2.4/src/liolib.c",
-        "lua-5.2.4/src/loslib.c"
+        "lua-5.2.4/src/loslib.c",
+
+        "yajl-2.1.0/src/yajl.c", 
+        "yajl-2.1.0/src/yajl_alloc.c", 
+        "yajl-2.1.0/src/yajl_buf.c", 
+        "yajl-2.1.0/src/yajl_encode.c", 
+        "yajl-2.1.0/src/yajl_gen.c", 
+        "yajl-2.1.0/src/yajl_lex.c", 
+        "yajl-2.1.0/src/yajl_parser.c",
+        "yajl-2.1.0/src/yajl_tree.c"
 	],
       "include_dirs": [
         "lua-5.2.4/src",
+        "yajl-2.1.0/src/api",
         "<!(node -e \"require('nan')\")"
         ],
       "defines" : ["LUA_ANSI"],

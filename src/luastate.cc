@@ -9,6 +9,9 @@ static lua_State* lua_open() {
 }
 #endif
 
+int luaopen_cjson(lua_State* L);
+int luaopen_cjson_safe(lua_State* L);
+
 /// @todo : move to state
 typedef std::map<std::string, 
   Nan::Callback* > functions_map_t;
@@ -308,6 +311,19 @@ NAN_METHOD(LuaState::New){
   obj->name_ = get_str(info[0]);
   obj->lua_ = lua_open();
   luaL_openlibs(obj->lua_);
+    static const luaL_Reg loadedlibs[] = {
+        {"cjson", luaopen_cjson},
+        {"cjson.safe", luaopen_cjson_safe},
+        {NULL, NULL}
+    };
+
+    const luaL_Reg *lib;
+    /* call open functions from 'loadedlibs' and set results to global table */
+    for (lib = loadedlibs; lib->func; lib++) {
+        luaL_requiref(obj->lua_, lib->name, lib->func, 1);
+        lua_pop(obj->lua_, 1);  /* remove lib */
+    }
+    
   obj->Wrap(info.This());
 
   info.GetReturnValue().Set(info.This());
