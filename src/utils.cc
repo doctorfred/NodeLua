@@ -62,6 +62,16 @@ void push_value_to_lua(lua_State* L, v8::Handle<v8::Value> value){
   }else if(value->IsBoolean()){
     int b_value = (int)value->ToBoolean()->Value();
     lua_pushboolean(L, b_value);
+  }else if(value->IsArray()){
+    lua_newtable(L);
+    v8::Local<v8::Value> lvalue(value);
+    v8::Local<v8::Array> values = v8::Local<v8::Array>::Cast(lvalue);
+    for(uint32_t i = 0; i < values->Length(); ++i){
+      v8::Local<v8::Value> val = values->Get(i);
+      lua_pushinteger(L,i+1);
+      push_value_to_lua(L, val);
+      lua_settable(L, -3);
+    }
   }else if(value->IsObject()){
     lua_newtable(L);
     v8::Local<v8::Object> obj = value->ToObject();
