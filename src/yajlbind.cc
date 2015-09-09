@@ -198,12 +198,25 @@ static void yajl_encode_print(void * ctx,const char * str,size_t len) {
 }
 static void do_json_encode(lua_State* L,int indx,yajl_gen g);
     
+static void do_json_encode_string(lua_State* L,int idx, yajl_gen g) {
+    size_t len = 0;
+    const char* str = 0;
+    str = lua_tolstring(L,idx,&len);
+    if (!str || len == 0) {
+        yajl_gen_string(g, reinterpret_cast<const unsigned char*>("unknown"),7 );
+    } else {
+        yajl_gen_string(g, reinterpret_cast<const unsigned char*>(str),len );
+    }
+}
+
 static void do_json_encode_table(lua_State* L,int indx,yajl_gen g) {
     assert(lua_istable(L, indx));
-    lua_pushvalue(L, indx);
-    lua_pushnil(L);
     int count = 0;
     bool only_integers = true;
+    
+    lua_pushvalue(L, indx);
+    lua_pushnil(L);
+    
     while (lua_next(L, -2) != 0) {
         /* uses 'key' (at index -2) and 'value' (at index -1) */
         if (lua_isnumber(L, -2)) {
@@ -243,14 +256,18 @@ static void do_json_encode_table(lua_State* L,int indx,yajl_gen g) {
         lua_pushnil(L);
         while (lua_next(L, -2) != 0) {
             /* uses 'key' (at index -2) and 'value' (at index -1) */
-            size_t len = 0;
-            const char* str = lua_tolstring(L,-2,&len);
-            if (!str || len == 0) {
-                yajl_gen_string(g, reinterpret_cast<const unsigned char*>("unknown"),7 );
+            int t = lua_type(L, -2);
+            if (t == LUA_TSTRING) {
+                do_json_encode_string(L,-2,g);
             } else {
-                yajl_gen_string(g, reinterpret_cast<const unsigned char*>(str),len );
+                lua_pushvalue(L,-2);
+                do_json_encode_string(L,-1,g);
+                lua_pop(L,1);
             }
+            
             do_json_encode(L, -1, g);
+
+            assert(lua_type(L, -2) == t);
             /* removes 'value'; keeps 'key' for next iteration */
             lua_pop(L, 1);
         }
