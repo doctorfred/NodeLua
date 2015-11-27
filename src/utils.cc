@@ -67,8 +67,8 @@ void push_value_to_lua(lua_State* L, v8::Handle<v8::Value> value){
   if(value->IsString()){
     lua_pushstring(L, get_str(v8::Local<v8::Value>::New(isolate, value)).c_str());
   }else if(value->IsNumber()){
-    int i_value = value->ToNumber()->Value();
-    lua_pushinteger(L, i_value);
+    lua_Number n_value = value->ToNumber()->Value();
+    lua_pushnumber(L, n_value);
   }else if(value->IsBoolean()){
     int b_value = (int)value->ToBoolean()->Value();
     lua_pushboolean(L, b_value);
