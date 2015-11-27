@@ -156,7 +156,8 @@ NAN_METHOD(LuaState::DoFileSync){
 
   if(luaL_dofile(obj->lua_, file_name.c_str())){
     char buf[1000];
-    sprintf(buf, "Exception Of File %s Has Failed:\n%s\n", file_name.c_str(), lua_tostring(obj->lua_, -1));
+    snprintf(buf, 1000, "Exception Of File %s Has Failed:\n%s\n", file_name.c_str(), lua_tostring(obj->lua_, -1));
+    lua_pop(obj->lua_,1);
     Nan::ThrowError(buf);
     return;
   }
@@ -186,7 +187,8 @@ NAN_METHOD(LuaState::DoStringSync) {
 
   if(luaL_dostring(obj->lua_, lua_code.c_str())){
     char buf[1000];
-    sprintf(buf, "Execution Of Lua Code Has Failed:\n%s\n", lua_tostring(obj->lua_, -1));
+    snprintf(buf, 1000, "Execution Of Lua Code Has Failed:\n%s\n", lua_tostring(obj->lua_, -1));
+    lua_pop(obj->lua_,1);
     Nan::ThrowError(buf);
     return;
   }
