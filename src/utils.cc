@@ -1,6 +1,15 @@
 #include <stdlib.h>
+#include <assert.h>
 #include "utils.h"
 using namespace v8;
+
+lua_stack_check::lua_stack_check(lua_State* L,int delta) : m_L(L),m_top(0) {
+  m_top = lua_gettop(L) + delta;
+}
+lua_stack_check::~lua_stack_check() {
+  int now = lua_gettop(m_L);
+  assert(now == m_top);
+}
 
 std::string get_str(v8::Local<v8::Value> val){
   v8::Isolate* isolate;
@@ -31,12 +40,13 @@ v8::Local<v8::Value> lua_to_value(lua_State* L, int i){
   case LUA_TTABLE:
     {
       v8::Local<v8::Object> obj = v8::Object::New(isolate);
+      int idx = i < 0 ? (i-1) : i;
       lua_pushnil(L);
-      while(lua_next(L, -2) != 0){
-	v8::Local<v8::Value> key = lua_to_value(L, -2);
-	v8::Local<v8::Value> value = lua_to_value(L, -1);
-	obj->Set(key, value);
-	lua_pop(L, 1);
+      while(lua_next(L, idx) != 0){
+	     v8::Local<v8::Value> key = lua_to_value(L, -2);
+	     v8::Local<v8::Value> value = lua_to_value(L, -1);
+	     obj->Set(key, value);
+	     lua_pop(L, 1);
       }
       return obj;
       break;
