@@ -53,7 +53,7 @@
     "defines" : ["LUA_ANSI", "LUA_USE_DLOPEN"],
 
       "include_dirs": [
-        "lua-5.2.4/src",
+        "lua5.1",
         "yajl-2.1.0/src/api",
         "<!(node -e \"require('nan')\")"
         ],
