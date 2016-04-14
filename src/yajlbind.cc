@@ -1,10 +1,11 @@
 
 extern "C" {
-#include <yajl_parse.h>
-#include <yajl_gen.h>
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
+    #include <yajl_parse.h>
+    #include <yajl_gen.h>
+    #include <lua.h>
+    #include <lauxlib.h>
+    #include <lualib.h>
+    #include "compat-5.2.h"
 }
 
 #include <vector>

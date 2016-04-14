@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "utils.h"
+extern "C"{
+#include "compat-5.2.h"
+}
 using namespace v8;
 
 lua_stack_check::lua_stack_check(lua_State* L,int delta) : m_L(L),m_top(0) {

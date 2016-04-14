@@ -5,6 +5,7 @@
 
 extern "C"{
 #include <lua.h>
+#include "compat-5.2.h"
 }
 
 //using namespace v8;

@@ -2,12 +2,9 @@
 #include "luastate.h"
 #include <string.h>
 #include <vector>
-
-#if LUA_VERSION_NUM >= 502
-static lua_State* lua_open() {
-  return luaL_newstate();
+extern "C"{
+#include "compat-5.2.h"
 }
-#endif
 
 int luaopen_cjson(lua_State* L);
 int luaopen_cjson_safe(lua_State* L);
